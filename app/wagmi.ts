@@ -7,6 +7,7 @@ import {
 const suave_toliman = {
   id: 33_626_250,
   name: 'SUAVE Toliman',
+  iconUrl: 'https://docs.flashbots.net/img/brand-assets/flashbots_icon.png',
   nativeCurrency: {
     name: 'Toliman ETH',
     symbol: 'tETH',
@@ -30,6 +31,7 @@ const suave_toliman = {
 const local_suave_toliman = {
   id: 16813125,
   name: 'Local SUAVE Toliman',
+  iconUrl: 'https://docs.flashbots.net/img/brand-assets/flashbots_icon.png',
   nativeCurrency: {
     name: 'Toliman ETH',
     symbol: 'tETH',
