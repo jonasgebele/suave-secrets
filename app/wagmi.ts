@@ -24,28 +24,28 @@ const suave_toliman = {
   blockExplorers: {
     default: { name: 'Toliman Explorer', url: 'https://explorer.toliman.suave.flashbots.net' },
   },
-  testnet: true, // Set to false if it's a mainnet
+  testnet: true,
 } as const satisfies Chain;
 
 // Define your custom network
-const local_suave_toliman = {
+export const local_suave_toliman = {
   id: 16813125,
   name: 'Local SUAVE Toliman',
   iconUrl: 'https://docs.flashbots.net/img/brand-assets/flashbots_icon.png',
   nativeCurrency: {
-    name: 'Toliman ETH',
-    symbol: 'tETH',
+    name: 'SUAVE Devnet Eth',
+    symbol: 'sETH',
     decimals: 18,
   },
   rpcUrls: {
     default: {
-      http: ['https:/localhost:8545'],
+      http: ['http://localhost:8545'],
     },
     public: {
-      http: ['https:/localhost:8545'],
+      http: ['http://localhost:8545'],
     },
   },
-  testnet: true, // Set to false if it's a mainnet
+  testnet: true,
 } as const satisfies Chain;
 
 export const config = getDefaultConfig({
