@@ -68,6 +68,9 @@ const ABI = [
 
 export default function Home() {
   const { address } = useAccount();
+  const account = useAccount()
+  
+  // State declarations
   const [hash, setHash] = useState(null);
   const [decodedLogs, setDecodedLogs] = useState(null);
   const [error, setError] = useState(null);
@@ -79,6 +82,7 @@ export default function Home() {
   const [encryptedMessage, setEncryptedMessage] = useState(null);
   const [decryptedMessage, setDecryptedMessage] = useState(null);
 
+  // Get encryption public key from MetaMask
   async function getEncryptionPublicKey() {
     if (!window.ethereum) {
       throw new Error("MetaMask is not installed");
@@ -99,38 +103,18 @@ export default function Home() {
     }
   }
 
-  async function encryptMessage(publicKey: string, msg: string): Promise<EthEncryptedData> {
-    const encryptedData = encrypt({
-      publicKey,
-      data: msg,
-      version: 'x25519-xsalsa20-poly1305'
-    });
-
-    return {
-      version: encryptedData.version,
-      nonce: encryptedData.nonce,
-      ephemPublicKey: encryptedData.ephemPublicKey,
-      ciphertext: encryptedData.ciphertext
-    };
-  }
-
-  async function decryptMessage(encryptedMsg: string) {
+  // Decrypt message function
+  async function decryptMessage(encryptedMsg) {
     if (!window.ethereum || !address) {
       throw new Error("MetaMask is not connected");
     }
 
     try {
-      // Ensure the hex format with 0x prefix
-      const formattedHex = encryptedMsg.startsWith('0x') ? 
-        encryptedMsg : 
-        `0x${encryptedMsg}`;
+      console.log('Attempting to decrypt:', encryptedMsg);
       
-      console.log('Attempting to decrypt hex:', formattedHex);
-
-      // Pass the hex format directly to eth_decrypt
       const decrypted = await window.ethereum.request({
         method: 'eth_decrypt',
-        params: [formattedHex, address]
+        params: [encryptedMsg, address]
       });
       
       console.log('Decrypted message:', decrypted);
@@ -143,7 +127,7 @@ export default function Home() {
     }
   }
 
-  // For display purposes only, we'll still show the decoded format
+  // Helper function to decode hex format for display
   const getDecodedFormat = (hexString: string) => {
     try {
       const cleanHex = hexString.startsWith('0x') ? hexString.slice(2) : hexString;
@@ -155,6 +139,7 @@ export default function Home() {
     }
   };
 
+  // Main submit function
   async function submit(e) {
     e.preventDefault();
     setIsPending(true);
@@ -190,8 +175,6 @@ export default function Home() {
         }
       });
 
-      // Send the public key and message to the contract
-      // The contract will handle the encryption
       const data = encodeFunctionData({
         abi: ABI,
         functionName: 'offchain',
@@ -214,8 +197,8 @@ export default function Home() {
       setHash(txHash);
       setStatus('Mining');
 
-      // Monitor for transaction receipt and encrypted message
-      const checkReceipt = async () => {
+       // Monitor for transaction receipt and encrypted message
+       const checkReceipt = async () => {
         try {
           const receipt = await suaveProvider.getTransactionReceipt({ hash: txHash });
           if (receipt && receipt.status === 'success') {
@@ -229,6 +212,7 @@ export default function Home() {
                     ...log,
                   });
                   
+                  // Store encrypted message if found
                   if (decodedLog.eventName === 'EncryptedMessageEvent') {
                     setEncryptedMessage(decodedLog.args.encryptedMessage);
                   }
@@ -370,31 +354,31 @@ export default function Home() {
             </div>
           )}
 
-{encryptedMessage && (
-    <div className="mt-4">
-      <p className="font-medium text-gray-700">Encrypted Message Data:</p>
-      <div className="mt-2 p-2 bg-gray-50 rounded">
-        <p className="text-xs text-gray-500 mb-1">Hex Format (used for decryption):</p>
-        <p className="break-all font-mono text-xs">
-          {encryptedMessage.startsWith('0x') ? 
-            encryptedMessage : 
-            `0x${encryptedMessage}`}
-        </p>
-        
-        <p className="text-xs text-gray-500 mt-3 mb-1">Decoded Format (for display only):</p>
-        <pre className="break-all font-mono text-xs bg-white p-2 rounded">
-          {getDecodedFormat(encryptedMessage)}
-        </pre>
-      </div>
-      
-      <button
-        onClick={() => decryptMessage(encryptedMessage)}
-        className="mt-4 w-full p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-      >
-        Decrypt Message
-      </button>
-    </div>
-  )}
+          {encryptedMessage && (
+            <div className="mt-4">
+              <p className="font-medium text-gray-700">Encrypted Message Data:</p>
+              <div className="mt-2 p-2 bg-gray-50 rounded">
+                <p className="text-xs text-gray-500 mb-1">Hex Format (used for decryption):</p>
+                <p className="break-all font-mono text-xs">
+                  {encryptedMessage.startsWith('0x') ? 
+                    encryptedMessage : 
+                    `0x${encryptedMessage}`}
+                </p>
+                
+                <p className="text-xs text-gray-500 mt-3 mb-1">Decoded Format (for display only):</p>
+                <pre className="break-all font-mono text-xs bg-white p-2 rounded">
+                  {getDecodedFormat(encryptedMessage)}
+                </pre>
+              </div>
+              
+              <button
+                onClick={() => decryptMessage(encryptedMessage)}
+                className="mt-4 w-full p-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                Decrypt Message
+              </button>
+            </div>
+          )}
 
           {decryptedMessage && (
             <div className="mt-4 p-4 bg-green-50 rounded">
