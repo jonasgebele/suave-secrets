@@ -68,7 +68,7 @@ const ABI = [
 
 export default function Home() {
   const { address } = useAccount();
-  const account = useAccount()
+  const account = useAccount();
   
   // State declarations
   const [hash, setHash] = useState(null);
@@ -81,6 +81,16 @@ export default function Home() {
   const [encryptionKey, setEncryptionKey] = useState(null);
   const [encryptedMessage, setEncryptedMessage] = useState(null);
   const [decryptedMessage, setDecryptedMessage] = useState(null);
+
+  // Check if contract is deployed
+  async function checkContractDeployment(provider, address) {
+    try {
+      const code = await provider.getBytecode({ address });
+      return code && code !== '0x';
+    } catch (error) {
+      return false;
+    }
+  }
 
   // Get encryption public key from MetaMask
   async function getEncryptionPublicKey() {
@@ -162,6 +172,12 @@ export default function Home() {
         chainId: local_suave_toliman.id,
         currencySymbol: local_suave_toliman.nativeCurrency.symbol
       });
+
+      // Check if contract is deployed
+      const isDeployed = await checkContractDeployment(suaveProvider, contractAddress);
+      if (!isDeployed) {
+        throw new Error("Missing or invalid parameters. Double check you have provided the correct parameters and ensure there is a contract deployed at the specified address.");
+      }
       
       const PRIVATE_KEY: Hex = '0x91ab9a7e53c220e6210460b65a7a3bb2ca181412a8a7b43ff336b3df1737ce12';
       const wallet = getSuaveWallet({
@@ -197,8 +213,8 @@ export default function Home() {
       setHash(txHash);
       setStatus('Mining');
 
-       // Monitor for transaction receipt and encrypted message
-       const checkReceipt = async () => {
+      // Monitor for transaction receipt and encrypted message
+      const checkReceipt = async () => {
         try {
           const receipt = await suaveProvider.getTransactionReceipt({ hash: txHash });
           if (receipt && receipt.status === 'success') {
